@@ -1,0 +1,24 @@
+- id: demo-authorization
+  upstream:
+    url: http://app:8080
+  match:
+    url: http://oathkeeper:4455/<**>
+    methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: remote_json
+    config:
+      remote: http://app:8080/authorization/verify
+      payload: |
+        {
+          "subject": "user:alice",
+          "object": "document:readme",
+          "permission": "read"
+        }
+  mutators:
+    - handler: noop

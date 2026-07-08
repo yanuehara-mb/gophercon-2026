@@ -1,0 +1,15 @@
+serve:
+  proxy:
+    port: 4455
+
+log:
+  level: warning
+
+access_rules:
+  repositories:
+    - file:///etc/oathkeeper/access-rules.yml
+
+errors:
+  handlers:
+    json:
+      enabled: true

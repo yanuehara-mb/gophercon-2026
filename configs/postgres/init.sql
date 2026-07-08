@@ -1,0 +1,2 @@
+CREATE DATABASE hydra;
+CREATE DATABASE spicedb;

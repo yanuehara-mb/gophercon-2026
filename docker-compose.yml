@@ -1,0 +1,104 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./configs/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  hydra-migrate:
+    image: oryd/hydra:v2.2.0
+    command: migrate sql --yes postgres://postgres:postgres@postgres:5432/hydra?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  spicedb-migrate:
+    image: authzed/spicedb:v1.35.0
+    command: >
+      migrate head
+      --datastore-engine=postgres
+      --datastore-conn-uri=postgres://postgres:postgres@postgres:5432/spicedb?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+  hydra:
+    image: oryd/hydra:v2.2.0
+    command: serve all --dev
+    environment:
+      DSN: postgres://postgres:postgres@postgres:5432/hydra?sslmode=disable
+      URLS_SELF_ISSUER: http://hydra:4444/
+      SECRETS_SYSTEM: youReallyNeedToChangeThis
+      LOG_LEVEL: warn
+    ports:
+      - "4444:4444"
+      - "4445:4445"
+    depends_on:
+      hydra-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:4445/health/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  spicedb:
+    image: authzed/spicedb:v1.35.0
+    command: >
+      serve
+      --grpc-preshared-key=somerandomkeyhere
+      --datastore-engine=postgres
+      --datastore-conn-uri=postgres://postgres:postgres@postgres:5432/spicedb?sslmode=disable
+      --grpc-no-tls
+      --http-no-tls
+    ports:
+      - "50051:50051"
+    depends_on:
+      spicedb-migrate:
+        condition: service_completed_successfully
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      HYDRA_URL: http://hydra:4445
+      SPICEDB_ADDR: spicedb:50051
+      SPICEDB_TOKEN: somerandomkeyhere
+      REDIS_ADDR: redis:6379
+    depends_on:
+      hydra:
+        condition: service_healthy
+      spicedb:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  oathkeeper:
+    image: oryd/oathkeeper:v0.40.7
+    command: serve --config /etc/oathkeeper/config.yml
+    volumes:
+      - ./configs/oathkeeper:/etc/oathkeeper
+    ports:
+      - "4455:4455"
+    depends_on:
+      - app
