@@ -31,12 +31,13 @@ func setupHydraRouter(i Introspector) *gin.Engine {
 
 func TestHandler_Introspect(t *testing.T) {
 	tests := []struct {
-		name       string
-		formBody   string
-		mockResp   *http.Response
-		mockErr    error
-		wantStatus int
-		wantBody   string
+		name            string
+		formBody        string
+		mockResp        *http.Response
+		mockErr         error
+		wantStatus      int
+		wantBody        string
+		wantContentType string
 	}{
 		{
 			name:     "passes through hydra 200 response",
@@ -46,8 +47,9 @@ func TestHandler_Introspect(t *testing.T) {
 				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(`{"active":true}`)),
 			},
-			wantStatus: http.StatusOK,
-			wantBody:   `{"active":true}`,
+			wantStatus:      http.StatusOK,
+			wantBody:        `{"active":true}`,
+			wantContentType: "application/json",
 		},
 		{
 			name:     "passes through hydra 401 response",
@@ -57,8 +59,9 @@ func TestHandler_Introspect(t *testing.T) {
 				Header:     http.Header{"Content-Type": {"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(`{"active":false}`)),
 			},
-			wantStatus: http.StatusUnauthorized,
-			wantBody:   `{"active":false}`,
+			wantStatus:      http.StatusUnauthorized,
+			wantBody:        `{"active":false}`,
+			wantContentType: "application/json",
 		},
 		{
 			name:       "missing token returns 400",
@@ -88,6 +91,11 @@ func TestHandler_Introspect(t *testing.T) {
 			}
 			if tt.wantBody != "" && w.Body.String() != tt.wantBody {
 				t.Errorf("body: got %q, want %q", w.Body.String(), tt.wantBody)
+			}
+			if tt.wantContentType != "" {
+				if ct := w.Header().Get("Content-Type"); ct != tt.wantContentType {
+					t.Errorf("Content-Type: got %q, want %q", ct, tt.wantContentType)
+				}
 			}
 		})
 	}
