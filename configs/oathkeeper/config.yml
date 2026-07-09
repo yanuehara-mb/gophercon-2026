@@ -3,11 +3,27 @@ serve:
     port: 4455
 
 log:
-  level: warning
+  level: warn
 
 access_rules:
   repositories:
     - file:///etc/oathkeeper/access-rules.yml
+
+authenticators:
+  noop:
+    enabled: true
+
+authorizers:
+  remote_json:
+    enabled: true
+    config:
+      remote: http://app:8080/authorization/verify
+      payload: |
+        {}
+
+mutators:
+  noop:
+    enabled: true
 
 errors:
   handlers:

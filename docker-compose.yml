@@ -58,8 +58,6 @@ services:
       --grpc-preshared-key=somerandomkeyhere
       --datastore-engine=postgres
       --datastore-conn-uri=postgres://postgres:postgres@postgres:5432/spicedb?sslmode=disable
-      --grpc-no-tls
-      --http-no-tls
     ports:
       - "50051:50051"
     depends_on:
