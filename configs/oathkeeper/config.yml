@@ -12,6 +12,13 @@ access_rules:
 authenticators:
   noop:
     enabled: true
+  oauth2_introspection:
+    enabled: true
+    config:
+      introspection_url: http://app:8080/oauth2/introspect
+      scope_strategy: none
+      pre_authorization:
+        enabled: false
 
 authorizers:
   remote_json:

@@ -91,6 +91,11 @@ services:
       timeout: 3s
       retries: 5
 
+  httpbin:
+    image: mccutchen/go-httpbin:latest
+    ports:
+      - "8081:8080"
+
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7
     command: serve --config /etc/oathkeeper/config.yml
@@ -100,3 +105,4 @@ services:
       - "4455:4455"
     depends_on:
       - app
+      - httpbin
