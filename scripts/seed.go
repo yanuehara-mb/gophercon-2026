@@ -24,6 +24,11 @@ func main() {
 		token = v
 	}
 
+	allowedSubject := "client-alice"
+	if v := os.Getenv("ALLOWED_SUBJECT"); v != "" {
+		allowedSubject = v
+	}
+
 	client, err := authzed.NewClient(addr,
 		grpcutil.WithInsecureBearerToken(token),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -50,11 +55,11 @@ definition document {
 	_, err = client.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{
 		Updates: []*v1.RelationshipUpdate{
 			{
-				Operation: v1.RelationshipUpdate_OPERATION_CREATE,
+				Operation: v1.RelationshipUpdate_OPERATION_TOUCH,
 				Relationship: &v1.Relationship{
 					Resource: &v1.ObjectReference{ObjectType: "document", ObjectId: "readme"},
 					Relation: "reader",
-					Subject:  &v1.SubjectReference{Object: &v1.ObjectReference{ObjectType: "user", ObjectId: "alice"}},
+					Subject:  &v1.SubjectReference{Object: &v1.ObjectReference{ObjectType: "user", ObjectId: allowedSubject}},
 				},
 			},
 		},
@@ -62,6 +67,6 @@ definition document {
 	if err != nil {
 		log.Fatalf("write relationship: %v", err)
 	}
-	log.Println("relationship created: user:alice reader document:readme")
+	log.Printf("relationship created: user:%s reader document:readme", allowedSubject)
 	log.Println("SpiceDB seeded successfully.")
 }
