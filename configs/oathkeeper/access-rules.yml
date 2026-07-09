@@ -1,22 +1,21 @@
-- id: demo-authorization
+- id: demo-httpbin
   upstream:
-    url: http://app:8080
+    url: http://httpbin:8080
+    strip_path: /demo
   match:
-    url: http://localhost:4455/<.*>
+    url: http://localhost:4455/demo/<(get|post)>
     methods:
       - GET
       - POST
-      - PUT
-      - DELETE
   authenticators:
-    - handler: noop
+    - handler: oauth2_introspection
   authorizer:
     handler: remote_json
     config:
       remote: http://app:8080/authorization/verify
       payload: |
         {
-          "subject": "user:alice",
+          "subject": "user:{{ print .Subject }}",
           "object": "document:readme",
           "permission": "read"
         }
