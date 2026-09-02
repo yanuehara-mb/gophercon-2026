@@ -8,6 +8,7 @@ import (
 func TestLoad_Defaults(t *testing.T) {
 	os.Unsetenv("SERVER_PORT")
 	os.Unsetenv("HYDRA_URL")
+	os.Unsetenv("HYDRA_PUBLIC_URL")
 	os.Unsetenv("SPICEDB_ADDR")
 	os.Unsetenv("SPICEDB_TOKEN")
 	os.Unsetenv("REDIS_ADDR")
@@ -21,6 +22,7 @@ func TestLoad_Defaults(t *testing.T) {
 	}{
 		{"Port", cfg.Port, "8080"},
 		{"HydraURL", cfg.HydraURL, "http://hydra:4445"},
+		{"HydraPublicURL", cfg.HydraPublicURL, "http://hydra:4444"},
 		{"SpiceDBAddr", cfg.SpiceDBAddr, "spicedb:50051"},
 		{"SpiceDBToken", cfg.SpiceDBToken, ""},
 		{"RedisAddr", cfg.RedisAddr, "redis:6379"},

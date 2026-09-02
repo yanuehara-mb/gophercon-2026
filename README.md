@@ -8,6 +8,7 @@ O projeto demonstra como construir uma facade em Go (Gin) que integra **Ory Hydr
 
 ```
 Cliente
+  → client_credentials → app:8080/oauth2/token → Hydra :4444
   → Bearer token → Oathkeeper :4455/demo/get (ou /demo/post)
       → [authn] oauth2_introspection → app:8080/oauth2/introspect → Hydra :4445
       → [authz] remote_json         → app:8080/authorization/verify → SpiceDB :50051
@@ -18,6 +19,7 @@ Cliente
 
 | Método | Path | Descrição |
 |--------|------|-----------|
+| `POST` | `/oauth2/token` | Repassa para o Public API do Hydra; compatível com RFC 6749 §3.2 |
 | `POST` | `/oauth2/introspect` | Repassa para o Admin API do Hydra; compatível com RFC 7662 |
 | `POST` | `/authorization/verify` | Verifica permissão no SpiceDB com cache Redis |
 | `GET` | `/healthz` | Health check |
@@ -71,7 +73,7 @@ curl http://localhost:4455/demo/get
 | Script | Descrição |
 |--------|-----------|
 | `scripts/create-clients.sh` | Cria `client-alice` e `client-bob` no Hydra. Idempotente (409 = skip). |
-| `scripts/mint-token.sh <client-id> <client-secret>` | Minta um token `client_credentials` e imprime na stdout. |
+| `scripts/mint-token.sh <client-id> <client-secret>` | Minta um token `client_credentials` pela facade e imprime na stdout. |
 | `scripts/seed.go` | Escreve o schema e a relação no SpiceDB. `ALLOWED_SUBJECT` (padrão `client-alice`) controla o sujeito autorizado. Usa `OPERATION_TOUCH` — seguro para re-execução. |
 
 ### Variáveis de ambiente dos scripts
@@ -79,10 +81,21 @@ curl http://localhost:4455/demo/get
 | Variável | Padrão | Descrição |
 |----------|--------|-----------|
 | `HYDRA_ADMIN` | `http://localhost:4445` | Admin API do Hydra |
-| `HYDRA_PUBLIC` | `http://localhost:4444` | Public API do Hydra |
+| `FACADE_URL` | `http://localhost:8080` | Facade Go — expõe o token endpoint |
 | `SPICEDB_ADDR` | `localhost:50051` | Endereço gRPC do SpiceDB |
 | `SPICEDB_TOKEN` | `somerandomkeyhere` | Pre-shared key do SpiceDB |
 | `ALLOWED_SUBJECT` | `client-alice` | Subject que recebe permissão `reader` em `document:readme` |
+
+### Variáveis de ambiente da facade (`app`)
+
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `SERVER_PORT` | `8080` | Porta HTTP da facade |
+| `HYDRA_URL` | `http://hydra:4445` | Admin API do Hydra (introspection) |
+| `HYDRA_PUBLIC_URL` | `http://hydra:4444` | Public API do Hydra (token endpoint) |
+| `SPICEDB_ADDR` | `spicedb:50051` | Endereço gRPC do SpiceDB |
+| `SPICEDB_TOKEN` | — | Pre-shared key do SpiceDB |
+| `REDIS_ADDR` | `redis:6379` | Cache de autorização |
 
 ## Serviços
 

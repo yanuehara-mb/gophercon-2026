@@ -70,6 +70,7 @@ services:
       - "8080:8080"
     environment:
       HYDRA_URL: http://hydra:4445
+      HYDRA_PUBLIC_URL: http://hydra:4444
       SPICEDB_ADDR: spicedb:50051
       SPICEDB_TOKEN: somerandomkeyhere
       REDIS_ADDR: redis:6379
