@@ -70,9 +70,15 @@ services:
       - "8080:8080"
     environment:
       HYDRA_URL: http://hydra:4445
+      HYDRA_PUBLIC_URL: http://hydra:4444
       SPICEDB_ADDR: spicedb:50051
       SPICEDB_TOKEN: somerandomkeyhere
       REDIS_ADDR: redis:6379
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     depends_on:
       hydra:
         condition: service_healthy
@@ -97,12 +103,14 @@ services:
       - "8081:8080"
 
   oathkeeper:
-    image: oryd/oathkeeper:v0.40.7
+    image: oryd/oathkeeper:v0.40.1
     command: serve --config /etc/oathkeeper/config.yml
     volumes:
       - ./configs/oathkeeper:/etc/oathkeeper
     ports:
       - "4455:4455"
     depends_on:
-      - app
-      - httpbin
+      app:
+        condition: service_healthy
+      httpbin:
+        condition: service_started

@@ -3,7 +3,7 @@ serve:
     port: 4455
 
 log:
-  level: warn
+  level: warning
 
 access_rules:
   repositories:

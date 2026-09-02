@@ -13,8 +13,8 @@ import (
 func main() {
 	cfg := config.Load()
 
-	hydraClient := hydra.NewClient(cfg.HydraURL)
-	hydraHandler := hydra.NewHandler(hydraClient)
+	hydraClient := hydra.NewClient(cfg.HydraURL, cfg.HydraPublicURL)
+	hydraHandler := hydra.NewHandler(hydraClient, hydraClient)
 
 	tokenCache := spicedb.NewTokenCache(cfg.RedisAddr)
 	spicedbClient, err := spicedb.NewClient(cfg.SpiceDBAddr, cfg.SpiceDBToken, tokenCache)
@@ -24,6 +24,7 @@ func main() {
 	spicedbHandler := spicedb.NewHandler(spicedbClient)
 
 	r := gin.Default()
+	r.POST("/oauth2/token", hydraHandler.Token)
 	r.POST("/oauth2/introspect", hydraHandler.Introspect)
 	r.POST("/authorization/verify", spicedbHandler.Verify)
 	r.GET("/healthz", func(c *gin.Context) {
