@@ -74,6 +74,11 @@ services:
       SPICEDB_ADDR: spicedb:50051
       SPICEDB_TOKEN: somerandomkeyhere
       REDIS_ADDR: redis:6379
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     depends_on:
       hydra:
         condition: service_healthy
@@ -105,5 +110,7 @@ services:
     ports:
       - "4455:4455"
     depends_on:
-      - app
-      - httpbin
+      app:
+        condition: service_healthy
+      httpbin:
+        condition: service_started
