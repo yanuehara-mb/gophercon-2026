@@ -7,11 +7,14 @@ until curl -sf "$HYDRA_ADMIN/health/ready" > /dev/null 2>&1; do sleep 1; done
 echo "Hydra ready."
 
 for client in alice bob; do
-  response=$(curl -sf -w "\n%{http_code}" -X POST "$HYDRA_ADMIN/admin/clients" \
+  # No -f here: it would discard the body and fail the script on 409, which is
+  # the very status the idempotency check below needs to see.
+  response=$(curl -s -w "\n%{http_code}" -X POST "$HYDRA_ADMIN/admin/clients" \
     -H "Content-Type: application/json" \
     -d "{\"client_id\":\"client-$client\",\"client_secret\":\"secret-$client\",\"grant_types\":[\"client_credentials\"]}")
   http_code=$(echo "$response" | tail -n1)
-  body=$(echo "$response" | head -n-1)
+  # sed '$d' and not head -n-1: BSD head (macOS) rejects a negative count.
+  body=$(echo "$response" | sed '$d')
 
   if [ "$http_code" = "201" ]; then
     echo "  → client-$client created ($(echo "$body" | jq -r '.client_id'))"
