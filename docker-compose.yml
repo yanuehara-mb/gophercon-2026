@@ -103,7 +103,7 @@ services:
       - "8081:8080"
 
   oathkeeper:
-    image: oryd/oathkeeper:v0.40.7
+    image: oryd/oathkeeper:v0.40.1
     command: serve --config /etc/oathkeeper/config.yml
     volumes:
       - ./configs/oathkeeper:/etc/oathkeeper
