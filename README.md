@@ -1,6 +1,6 @@
 # gophercon-2026
 
-Implementação de referência apresentada na palestra **"Autenticação e Autorização em Go com Ory e SpiceDB"** na [GopherCon LatAm 2026](https://gopherconlatam.org).
+Implementação de referência apresentada na palestra **"Autenticação e Autorização em Go além do JWT"** na [GopherCon LatAm 2026](https://gopherconlatam.org).
 
 O projeto demonstra como construir uma facade em Go (Gin) que integra **Ory Hydra** (OAuth2/OIDC) e **SpiceDB** (autorização baseada em relacionamentos), com **Ory Oathkeeper** protegendo rotas via introspection + policy enforcement.
 
